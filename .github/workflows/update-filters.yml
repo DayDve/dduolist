@@ -1,0 +1,83 @@
+name: Update Filters
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      changed: ${{ steps.commit.outputs.changed }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Fetch domain and generate filter list
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+
+          REDIRECT_URL=$(curl -fsI "https://kinokino.vip/film/12930515/" -w '%header{location}' -o /dev/null || true)
+
+          CURRENT_DOMAIN=$(echo "$REDIRECT_URL" | awk -F[/:] '{print $4}')
+
+          if [ -z "$CURRENT_DOMAIN" ]; then
+            echo "Failed to retrieve domain from redirect"
+            exit 1
+          fi
+
+          echo "Detected domain: $CURRENT_DOMAIN"
+
+          KNOWN_DOMAINS="fbfind.top,fbfree.cfd,fbsite.top"
+          if [[ ",$KNOWN_DOMAINS," != *",$CURRENT_DOMAIN,"* ]]; then
+            ALL_DOMAINS="${KNOWN_DOMAINS},${CURRENT_DOMAIN}"
+          else
+            ALL_DOMAINS="$KNOWN_DOMAINS"
+          fi
+
+          sed "s/__DOMAINS__/$ALL_DOMAINS/g" template.txt > dist/filters.txt
+          echo "ALL_DOMAINS=$ALL_DOMAINS" >> "$GITHUB_ENV"
+
+      - name: Commit updated filters
+        id: commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add dist/filters.txt
+          if git diff --cached --quiet; then
+            echo "No changes to filters, skipping deploy"
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            git commit -m "Update filter list: $ALL_DOMAINS"
+            git push origin "${{ github.ref_name }}"
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Upload GitHub Pages artifact
+        if: steps.commit.outputs.changed == 'true'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist/
+
+  deploy:
+    needs: build
+    if: needs.build.outputs.changed == 'true'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

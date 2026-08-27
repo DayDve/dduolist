@@ -1,0 +1,12 @@
+! Title: Kinobox Auto Mirror Filters
+! Expires: 1 days
+! Homepage: https://github.com/DayDve/dduolist
+
+! Скрываем мусор
+__DOMAINS__##.topAdPad, .adDown, #tgWrapper, #TopAdMb, .brand
+! Растягиваем родительские контейнеры
+__DOMAINS__##.wrapper, .mainContainer, .content, .kinobox:style(height: 100vh !important; max-height: none !important; padding: 0 !important; margin: 0 !important;)
+! Снимаем ограничения пропорций плеера
+__DOMAINS__##.kinobox_section, .kinobox_container:style(height: 100% !important; aspect-ratio: unset !important;)
+! Растягиваем iframe на 100%
+__DOMAINS__##.kinobox_iframe_container, .kinobox_iframe:style(height: 100% !important; width: 100% !important;)
