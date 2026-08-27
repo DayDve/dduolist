@@ -38,7 +38,7 @@ if [[ ${#group_dirs[@]} -eq 0 ]]; then
 fi
 
 cat > "$DIST_DIR/filters.txt" <<'EOF'
-! Title: My uBlock Filter Groups
+! Title: DayDve uBlock Filter Groups
 ! Expires: 1 days
 ! Homepage: https://github.com/DayDve/dduolist
 
