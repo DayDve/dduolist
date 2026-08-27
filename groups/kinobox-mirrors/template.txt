@@ -1,7 +1,3 @@
-! Title: Kinobox Auto Mirror Filters
-! Expires: 1 days
-! Homepage: https://github.com/DayDve/dduolist
-
 ! Скрываем мусор
 __DOMAINS__##.topAdPad, .adDown, #tgWrapper, #TopAdMb, .brand
 ! Растягиваем родительские контейнеры
