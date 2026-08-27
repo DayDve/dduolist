@@ -25,6 +25,9 @@ DIST_DIR="$ROOT/dist"
 rm -rf "$DIST_DIR"
 mkdir -p "$DIST_DIR"
 
+# shellcheck disable=SC1091
+source "$ROOT/groups/_lib/common.sh"
+
 shopt -s nullglob
 group_dirs=("$GROUPS_DIR"/*/)
 shopt -u nullglob
@@ -45,21 +48,35 @@ for group_dir in "${group_dirs[@]}"; do
   group_dir="${group_dir%/}"
   group_name="$(basename "$group_dir")"
 
-  if [[ -d "$group_dir" && "$group_dir" != "$GROUPS_DIR/_lib" ]]; then
-    echo "Processing group: $group_name" >&2
+  if [[ "$group_name" == "_lib" ]]; then
+    continue
+  fi
 
-    if [[ ! -f "$group_dir/handler.sh" ]]; then
-      echo "ERROR: $group_name has no handler.sh, skipping" >&2
-      continue
-    fi
+  if [[ ! -f "$group_dir/handler.sh" ]]; then
+    echo "ERROR: $group_name has no handler.sh, skipping" >&2
+    continue
+  fi
 
-    GROUP_NAME="$group_name" \
-    GROUP_DIR="$group_dir" \
-      bash "$group_dir/handler.sh" > "$DIST_DIR/$group_name.txt"
+  # Считываем свойство группы GROUP_ENABLED (по умолчанию true) из config.sh.
+  enabled=true
+  if [[ -f "$group_dir/config.sh" ]]; then
+    enabled="$(GROUP_NAME="$group_name" GROUP_DIR="$group_dir" bash -c '
+      source "$GROUP_DIR/config.sh"
+      printf "%s" "${GROUP_ENABLED:-true}"
+    ')"
+  fi
 
-    # Главный список: !#include на подправлен группы (в том же каталоге).
+  echo "Processing group: $group_name (enabled=$enabled)" >&2
+
+  GROUP_NAME="$group_name" \
+  GROUP_DIR="$group_dir" \
+    bash "$group_dir/handler.sh" > "$DIST_DIR/$group_name.txt"
+  echo "  -> dist/$group_name.txt" >&2
+
+  if [[ "$enabled" == "true" ]]; then
     printf '!#include %s.txt\n' "$group_name" >> "$DIST_DIR/filters.txt"
-    echo "  -> dist/$group_name.txt" >&2
+  else
+    echo "  (disabled: no !#include added)" >&2
   fi
 done
 

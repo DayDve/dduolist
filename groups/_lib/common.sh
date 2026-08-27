@@ -13,12 +13,19 @@ set -euo pipefail
 
 # Прочитать параметры группы из её $GROUP_DIR/config.sh, если он есть.
 # config.sh — исполняемый shell-файл, экспортирующий нужные типу переменные.
+# Управляющее свойство группы: GROUP_ENABLED=true|false (по умолчанию true).
 load_group_config() {
   local config="$GROUP_DIR/config.sh"
   if [[ -f "$config" ]]; then
     # shellcheck disable=SC1090
     source "$config"
   fi
+}
+
+# Включена ли группа? Читает GROUP_ENABLED из уже загруженного config.
+# По умолчанию (свойство отсутствует) группа считается включённой.
+group_is_enabled() {
+  [[ "${GROUP_ENABLED:-true}" == "true" ]]
 }
 
 # Вывести содержимое шаблона группы как есть.
