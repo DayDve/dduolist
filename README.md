@@ -18,7 +18,7 @@ https://daydve.github.io/dduolist/filters.txt
 ```
 ! Title: My uBlock Filter Groups
 ! Expires: 1 days
-!#include kinobox-mirrors.txt
+!#include kp-mirrors.txt
 !#include my-static.txt
 ```
 
@@ -98,7 +98,7 @@ example.com##aside.sidebar
 
 ### Пример: динамическая группа (актуальный список доменов)
 
-`groups/kinobox-mirrors/config.sh`:
+`groups/kp-mirrors/config.sh`:
 
 ```bash
 export REDIRECT_URL="https://kinokino.vip/film/12930515/"
@@ -106,7 +106,7 @@ export KNOWN_DOMAINS="fbfind.top,fbfree.cfd,fbsite.top"
 export DOMAINS_PLACEHOLDER="__DOMAINS__"
 ```
 
-`groups/kinobox-mirrors/handler.sh` — берёт известные домены, догружает текущий
+`groups/kp-mirrors/handler.sh` — берёт известные домены, догружает текущий
 из редиректа `REDIRECT_URL`, подставляет в `template.txt` вместо `__DOMAINS__`.
 
 ## Локальный запуск
